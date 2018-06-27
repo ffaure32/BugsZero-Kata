@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import com.adaptionsoft.games.trivia.runner.GameRunner;
 import com.adaptionsoft.games.uglytrivia.Game;
+import com.adaptionsoft.games.uglytrivia.Roll;
 import org.approvaltests.Approvals;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -13,21 +14,6 @@ import java.util.Random;
 import java.util.stream.IntStream;
 
 public class GameTest {
-
-	@Test
-    @Ignore
-	public void itsLockedDown() throws Exception {
-
-        Random randomizer = new Random(123455);
-        ByteArrayOutputStream resultStream = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(resultStream));
-
-        IntStream.range(1,15).forEach(i -> GameRunner.playGame(randomizer));
-
-        Approvals.verify(resultStream.toString());
-
-	}
-
 	@Test(expected = IllegalArgumentException.class)
     public void testInitGameWithTooFewPlayers() {
 	    Game game = new Game("joueur1");
@@ -50,7 +36,7 @@ public class GameTest {
     public void testFirstMove() {
         Game game = new Game("joueur1", "joueur2");
 
-        game.tryToMove(3);
+        game.tryToMove(new Roll(3));
         assertEquals(3, game.getCurrentPlayer().getPlace());
     }
 
@@ -59,7 +45,7 @@ public class GameTest {
         Game game = new Game("joueur1", "joueur2");
         game.getCurrentPlayer().sendToPenaltyBox();
 
-        game.tryToMove(2);
+        game.tryToMove(new Roll(2));
 
         assertTrue(game.isCurrentPlayerInPenaltyBox());
         assertEquals(0, game.getCurrentPlayer().getPlace());
@@ -70,7 +56,7 @@ public class GameTest {
         Game game = new Game("joueur1", "joueur2");
         game.getCurrentPlayer().sendToPenaltyBox();
 
-        game.tryToMove(3);
+        game.tryToMove(new Roll(3));
         assertFalse(game.isCurrentPlayerInPenaltyBox());
         assertEquals(3, game.getCurrentPlayer().getPlace());
     }

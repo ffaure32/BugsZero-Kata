@@ -22,8 +22,8 @@ public class Player {
         return inPenaltyBox;
     }
 
-    public void move(int roll) {
-        place = place + roll;
+    public void move(Roll roll) {
+        place = place + roll.face;
         if (place >= TRAY_SIZE) {
             place = place - TRAY_SIZE;
         }

@@ -1,5 +1,6 @@
 
 package com.adaptionsoft.games.trivia.runner;
+import com.adaptionsoft.games.uglytrivia.Dice;
 import java.util.Random;
 
 import com.adaptionsoft.games.uglytrivia.Game;
@@ -16,11 +17,12 @@ public class GameRunner {
 
 	public static void playGame(Random rand) {
 		Game aGame = new Game("Chet", "Pat", "Sue");
+		Dice dice = new Dice(rand, 6);
+
 
         boolean notAWinner;
         do {
-            int roll = simulateRandomRoll(rand);
-            aGame.tryToMove(roll);
+            aGame.tryToMove(dice.roll());
             if(!aGame.isCurrentPlayerInPenaltyBox()) {
                 boolean wrongAnswer = simulateAnswerWrong(rand);
                 if (wrongAnswer) {
@@ -32,10 +34,6 @@ public class GameRunner {
 			aGame.nextPlayer();
 		} while (!aGame.hasWinner());
 	}
-
-    private static int simulateRandomRoll(Random rand) {
-        return rand.nextInt(5) + 1;
-    }
 
     private static boolean simulateAnswerWrong(Random rand) {
 		return rand.nextInt(9) == 7;
