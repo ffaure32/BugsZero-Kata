@@ -8,7 +8,7 @@ import java.util.Map;
 public class QuestionDeck {
 
     private final int numberOfQuestionsByCategory;
-    private Map<Category, LinkedList<String>> questionsByCategory = new EnumMap<>(Category.class);
+    private Map<Category, LinkedList<Question>> questionsByCategory = new EnumMap<>(Category.class);
 
     public QuestionDeck(int numberOfQuestionsByCategory) {
         this.numberOfQuestionsByCategory = numberOfQuestionsByCategory;
@@ -22,13 +22,13 @@ public class QuestionDeck {
     private void initQuestions(Category category) {
         questionsByCategory.put(category, new LinkedList<>());
         for (int i = 0; i < numberOfQuestionsByCategory; i++) {
-            questionsByCategory.get(category).addLast(category.toString() + " Question " + i);
+            questionsByCategory.get(category).addLast(new Question(category.toString() + " Question " + i));
         }
     }
 
-    public String nextQuestion(Category category) {
-        LinkedList<String> questionsForCategory = questionsByCategory.get(category);
-        String nextQuestion = questionsForCategory.removeFirst();
+    public Question nextQuestion(Category category) {
+        LinkedList<Question> questionsForCategory = questionsByCategory.get(category);
+        Question nextQuestion = questionsForCategory.removeFirst();
         questionsForCategory.addLast(nextQuestion);
         return nextQuestion;
     }

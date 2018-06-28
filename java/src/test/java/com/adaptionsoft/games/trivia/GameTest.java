@@ -1,40 +1,45 @@
 package com.adaptionsoft.games.trivia;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import com.adaptionsoft.games.trivia.runner.GameRunner;
+import com.adaptionsoft.games.uglytrivia.Dice;
 import com.adaptionsoft.games.uglytrivia.Game;
+import com.adaptionsoft.games.uglytrivia.Player;
+import com.adaptionsoft.games.uglytrivia.Players;
+import com.adaptionsoft.games.uglytrivia.QuestionDeck;
 import com.adaptionsoft.games.uglytrivia.Roll;
-import org.approvaltests.Approvals;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import java.io.*;
 import java.util.Random;
 import java.util.stream.IntStream;
+import org.junit.Test;
 
 public class GameTest {
-	@Test(expected = IllegalArgumentException.class)
+    private Random random = new Random();
+    private Dice dice = new Dice(random, 6);
+    private QuestionDeck questionDeck = new QuestionDeck(50);
+
+    @Test(expected = IllegalArgumentException.class)
     public void testInitGameWithTooFewPlayers() {
-	    Game game = new Game("joueur1");
+	    Game game = new Game(questionDeck, dice, "joueur1");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testInitGameWithTooManyPlayers() {
-        Game game = new Game("joueur1", "joueur2", "joueur3", "joueur4", "joueur5", "joueur6", "joueur7");
+        Game game = new Game(questionDeck, dice,"joueur1", "joueur2", "joueur3", "joueur4", "joueur5", "joueur6", "joueur7");
     }
 
     @Test
     public void testInitGameOK() {
-        Game game = new Game("joueur1", "joueur2");
+        Players players = new Players("joueur1", "joueur2");
 
-        assertFalse(game.hasWinner());
-        assertEquals("joueur1", game.getCurrentPlayer().toString());
+        assertFalse(players.hasWinner());
+        assertEquals("joueur1", players.getCurrentPlayer().toString());
     }
 
     @Test
     public void testFirstMove() {
-        Game game = new Game("joueur1", "joueur2");
+        Game game = new Game(questionDeck, dice,"joueur1", "joueur2");
 
         game.tryToMove(new Roll(3));
         assertEquals(3, game.getCurrentPlayer().getPlace());
@@ -42,64 +47,56 @@ public class GameTest {
 
     @Test
     public void testEvenDiceDoesNotFreePrisoner() {
-        Game game = new Game("joueur1", "joueur2");
+        Game game = new Game(questionDeck, dice,"joueur1", "joueur2");
         game.getCurrentPlayer().sendToPenaltyBox();
 
         game.tryToMove(new Roll(2));
 
-        assertTrue(game.isCurrentPlayerInPenaltyBox());
+        assertTrue(game.getCurrentPlayer().isInPenaltyBox());
         assertEquals(0, game.getCurrentPlayer().getPlace());
     }
 
     @Test
     public void testOddDiceDoesNotFreePrisoner() {
-        Game game = new Game("joueur1", "joueur2");
+        Game game = new Game(questionDeck, dice,"joueur1", "joueur2");
         game.getCurrentPlayer().sendToPenaltyBox();
 
         game.tryToMove(new Roll(3));
-        assertFalse(game.isCurrentPlayerInPenaltyBox());
+        assertFalse(game.getCurrentPlayer().isInPenaltyBox());
         assertEquals(3, game.getCurrentPlayer().getPlace());
     }
 
     @Test
-    public void rightAnswerIncreasePurse() {
-        Game game = new Game("joueur1", "joueur2");
-        game.wasCorrectlyAnswered();
-
-        assertEquals(1, game.getCurrentPlayer().getPurse());
-    }
-
-    @Test
     public void wrongAnswerSendToPenaltyBox() {
-        Game game = new Game("joueur1", "joueur2");
-        game.wrongAnswer();
+        Game game = new Game(questionDeck, dice,"joueur1", "joueur2");
+        game.getCurrentPlayer().sendToPenaltyBox();
 
-        assertTrue(game.isCurrentPlayerInPenaltyBox());
+        assertTrue(game.getCurrentPlayer().isInPenaltyBox());
         assertEquals(0, game.getCurrentPlayer().getPurse());
     }
 
     @Test
     public void testNextPlayer() {
-        Game game = new Game("joueur1", "joueur2");
-        game.nextPlayer();
+        Players players = new Players("joueur1", "joueur2");
+        players.nextPlayer();
 
-        assertEquals("joueur2", game.getCurrentPlayer().toString());
+        assertEquals("joueur2", players.getCurrentPlayer().toString());
     }
 
     @Test
     public void testBackToFirstPlayer() {
-        Game game = new Game("joueur1", "joueur2");
-        game.nextPlayer();
-        game.nextPlayer();
+        Players players = new Players("joueur1", "joueur2");
+        players.nextPlayer();
+        players.nextPlayer();
 
-        assertEquals("joueur1", game.getCurrentPlayer().toString());
+        assertEquals("joueur1", players.getCurrentPlayer().toString());
     }
 
     @Test
     public void testGameWin() {
-        Game game = new Game("joueur1", "joueur2");
-
-        IntStream.range(0, 6).forEach(i -> game.wasCorrectlyAnswered());
+        Game game = new Game(questionDeck, dice,"joueur1", "joueur2");
+        Player currentPlayer = game.getCurrentPlayer();
+        IntStream.range(0, 6).forEach(i -> currentPlayer.addReward());
 
         assertTrue(game.hasWinner());
     }

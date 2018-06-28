@@ -1,70 +1,56 @@
 package com.adaptionsoft.games.uglytrivia;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Random;
 
 public class Game {
-
-    private List<Player> players = new ArrayList<>();
-
-    private int currentPlayerIndex = 0;
-
     private QuestionDeck questionDeck;
+    private Dice dice;
+    private Random random;
 
-    public Game(String ... players) {
-        verifyGameValidity(players);
-        addPlayers(players);
-        initQuestionDeck();
+    private Players players;
+
+    public Game(QuestionDeck questionDeck, Dice dice, String... playerNames) {
+        this.questionDeck = questionDeck;
+        this.dice = dice;
+        players = new Players(playerNames);
+        random = new Random();
     }
 
-    private void initQuestionDeck() {
-        questionDeck = new QuestionDeck(50);
-    }
-
-    private void addPlayers(String[] players) {
-        Arrays.stream(players).forEach(this::addPlayer);
-    }
-
-    private void verifyGameValidity(String[] players) {
-        if(players.length<2 || players.length>=7) {
-            throw new IllegalArgumentException("nombre de joueurs interdit");
+    public void playRound() {
+        tryToMove(dice.roll());
+        if(!getCurrentPlayer().isInPenaltyBox()) {
+            playQuestion();
         }
+        players.nextPlayer();
     }
 
-    private void addPlayer(String playerName) {
-        players.add(new Player(playerName));
+    private void playQuestion() {
+        getCurrentPlayer().playQuestion(askQuestion(), random.nextInt(Question.ANSWERS_COUNT));
     }
 
     public void tryToMove(Roll roll) {
         tryToEscapePenaltyBox(roll);
-        if (!isCurrentPlayerInPenaltyBox()) {
-            movePlayer(roll);
-            askQuestion();
-        }
-
+        movePlayer(roll);
     }
 
     private void tryToEscapePenaltyBox(Roll roll) {
-        if (isCurrentPlayerInPenaltyBox()) {
-            Player currentPlayer = getCurrentPlayer();
+        Player currentPlayer = getCurrentPlayer();
+        if (currentPlayer.isInPenaltyBox()) {
             if (roll.deliverFromPenaltyBox()) {
                 currentPlayer.escapePenaltyBox();
             }
         }
     }
 
-    public boolean isCurrentPlayerInPenaltyBox() {
-        return getCurrentPlayer().isInPenaltyBox();
-    }
-
     private void movePlayer(Roll roll) {
         Player currentPlayer = getCurrentPlayer();
-        currentPlayer.move(roll);
+        if (!currentPlayer.isInPenaltyBox()) {
+            currentPlayer.move(roll);
+        }
     }
 
-    private void askQuestion() {
-        questionDeck.nextQuestion(currentCategory());
+    private Question askQuestion() {
+        return questionDeck.nextQuestion(currentCategory());
     }
 
     private Category currentCategory() {
@@ -72,33 +58,11 @@ public class Game {
         return Category.get(place);
     }
 
-    public void wasCorrectlyAnswered() {
-        updatePurse();
-    }
-
-    private void updatePurse() {
-        Player player = getCurrentPlayer();
-        player.addReward();
-    }
-
-    public void wrongAnswer() {
-        getCurrentPlayer().sendToPenaltyBox();
+    public boolean hasWinner() {
+        return players.hasWinner();
     }
 
     public Player getCurrentPlayer() {
-        return players.get(currentPlayerIndex);
+        return players.getCurrentPlayer();
     }
-
-    public void nextPlayer() {
-        currentPlayerIndex++;
-        if (currentPlayerIndex == players.size()) {
-            currentPlayerIndex = 0;
-        }
-    }
-
-
-    public boolean hasWinner() {
-        return players.stream().anyMatch(Player::isWinner);
-    }
-
 }
