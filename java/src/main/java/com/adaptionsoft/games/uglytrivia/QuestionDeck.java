@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 public class QuestionDeck {
 
@@ -21,9 +22,9 @@ public class QuestionDeck {
 
     private void initQuestions(Category category) {
         questionsByCategory.put(category, new LinkedList<>());
-        for (int i = 0; i < numberOfQuestionsByCategory; i++) {
-            questionsByCategory.get(category).addLast(new Question(category.toString() + " Question " + i));
-        }
+        IntStream.range(0, numberOfQuestionsByCategory)
+            .mapToObj(i -> String.format("%s Question %n", category.toString(), i))
+            .forEach(question -> questionsByCategory.get(category).addLast(new Question(question)));
     }
 
     public Question nextQuestion(Category category) {

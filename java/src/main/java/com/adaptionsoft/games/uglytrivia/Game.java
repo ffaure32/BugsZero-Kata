@@ -3,11 +3,10 @@ package com.adaptionsoft.games.uglytrivia;
 import java.util.Random;
 
 public class Game {
-    private QuestionDeck questionDeck;
-    private Dice dice;
-    private Random random;
-
-    private Players players;
+    private final QuestionDeck questionDeck;
+    private final Dice dice;
+    private final Random random;
+    private final Players players;
 
     public Game(QuestionDeck questionDeck, Dice dice, String... playerNames) {
         this.questionDeck = questionDeck;
@@ -18,14 +17,19 @@ public class Game {
 
     public void playRound() {
         tryToMove(dice.roll());
-        if(!getCurrentPlayer().isInPenaltyBox()) {
-            playQuestion();
-        }
+        tryToAskQuestion();
         players.nextPlayer();
     }
 
+    private void tryToAskQuestion() {
+        if(!getCurrentPlayer().isInPenaltyBox()) {
+            playQuestion();
+        }
+    }
+
     private void playQuestion() {
-        getCurrentPlayer().playQuestion(askQuestion(), random.nextInt(Question.ANSWERS_COUNT));
+        Question question = questionDeck.nextQuestion(currentCategory());
+        getCurrentPlayer().playQuestion(question, random.nextInt(Question.ANSWERS_COUNT));
     }
 
     public void tryToMove(Roll roll) {
@@ -47,10 +51,6 @@ public class Game {
         if (!currentPlayer.isInPenaltyBox()) {
             currentPlayer.move(roll);
         }
-    }
-
-    private Question askQuestion() {
-        return questionDeck.nextQuestion(currentCategory());
     }
 
     private Category currentCategory() {
